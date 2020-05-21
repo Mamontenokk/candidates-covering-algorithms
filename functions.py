@@ -3,6 +3,7 @@ import pandas as pd
 import random
 import io
 
+
 def generate_input(num_of_candidates, subgroups):
     if max(subgroups) > num_of_candidates:
         return False

@@ -111,7 +111,6 @@ def first_genetic_algorithm(candidates, population_size, alpha, iter_num):
                 if random.random() < alpha:
                     population[solution,gen] = abs(1-population[solution,gen])
         return population
-        
     
     
     population = generate_population(population_size, candidates.shape[0])
@@ -130,7 +129,6 @@ def first_genetic_algorithm(candidates, population_size, alpha, iter_num):
     result = first_greedy_algorithm(candidates, np.where(zipped[0][0] == 1)[0].tolist())
     
     return result
-
 
 
 def second_genetic_algorithm(candidates, population_size, alpha, iter_num):
