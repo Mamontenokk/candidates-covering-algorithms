@@ -63,20 +63,20 @@ def create_greedy_chart(data):
     return chart
 
 
-def create_result_chart(data, title, domain):
+def create_result_chart(data, title, domain, legend, x, y):
     scales = alt.selection_interval(bind='scales')
-    selection = alt.selection_multi(fields=['Algorithm'], bind='legend')
+    selection = alt.selection_multi(fields=[legend], bind='legend')
  
     chart = alt.Chart(data, height=500, width=850).mark_line(point=True).encode(
-        x=alt.X('CandidatesNum:N', title='Кількість кандидатів'),
-        y=alt.Y('Result',
+        x=alt.X(f'{x}:N', title='Кількість кандидатів'),
+        y=alt.Y(y,
             scale=alt.Scale(domain=domain),
             title=title, 
-            sort=sorted(set(data['Result']), reverse=True)
+            sort=sorted(set(data[y]), reverse=True)
            ),
-        color=alt.Color('Algorithm:N',title='Алгоритм', scale=alt.Scale(scheme='category10')),
+        color=alt.Color(f'{legend}:N',title='Алгоритм', scale=alt.Scale(scheme='category10')),
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
-        tooltip=alt.Tooltip('Result', title=title)
+        tooltip=alt.Tooltip(y, title=title)
     ).add_selection(
         scales, selection
     ).configure_point(

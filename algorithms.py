@@ -81,8 +81,8 @@ def third_greedy_algorithm(candidates, present = []):
 def first_genetic_algorithm(candidates, population_size, alpha, iter_num):
     
     
-    def generate_population(population_size, groups):
-        return np.random.randint(2, size=(population_size, groups))
+    def generate_population(population_size, candidates):
+        return np.random.randint(2, size=(population_size, candidates))
     
     
     def get_score(groups,solution):
@@ -134,8 +134,8 @@ def first_genetic_algorithm(candidates, population_size, alpha, iter_num):
 def second_genetic_algorithm(candidates, population_size, alpha, iter_num):
     
     
-    def generate_population(population_size, groups):
-        return np.random.randint(2, size=(population_size, groups))
+    def generate_population(population_size, candidates):
+        return np.random.randint(2, size=(population_size, candidates))
     
     
     def get_score(groups,solution):
