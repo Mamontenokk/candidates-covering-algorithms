@@ -116,15 +116,65 @@ def show_research_page():
     st.altair_chart(create_result_chart(time_df[(time_df['GroupsNumber']==group_count_time) & (time_df['GroupMembers']==subgroups_count_time)],'Час виконання алгоритму', [0,8],'Algorithm','CandidatesNum','Result'))
     
 
+def calculate_algorithms(algorithms, tasks, population_size=32, alpha=0.5, iter_num=32):
+    results = pd.DataFrame(columns=['Номер задачі','Алгоритм',  'Кількість кандидатів', 'Розв\'язок', 'Значення ЦФ', 'Час виконання'])
+    counter = 0
+    for algorithm in algorithms:
+        for i,candidates in enumerate(tasks):
+            args = [candidates]
+
+            if algorithm == 'Жадібний алгоритм #1':
+                fn = first_greedy_algorithm
+                args.append([0])
+            elif algorithm  == 'Жадібний алгоритм #2':
+                fn = second_greedy_algorithm
+                args.append([0])
+            elif algorithm  == 'Жадібний алгоритм #3':
+                fn = third_greedy_algorithm
+                args.append([])
+            elif algorithm  == 'Генетичний алгоритм #1' or algorithm  == 'Генетичний алгоритм #2':
+                args.append(population_size)
+                args.append(alpha)
+                args.append(iter_num)
+                if algorithm  == 'Генетичний алгоритм #1':
+                    fn = first_genetic_algorithm
+                else:
+                    fn = second_genetic_algorithm
+            results.loc[counter, 'Номер задачі'] = i
+            results.loc[counter, 'Алгоритм'] = algorithm
+            results.loc[counter, 'Кількість кандидатів'] = candidates.shape[0]
+            start = time.time()
+            result = fn(*args)
+            end = time.time()
+            results.loc[counter, 'Розв\'язок'] = result
+            results.loc[counter, 'Значення ЦФ'] = len(result)
+            results.loc[counter, 'Час виконання'] = end-start
+            counter += 1
+
+    return results.astype({'Значення ЦФ': 'float64', 'Кількість кандидатів': 'int32', 'Час виконання': 'float64'})
+
+
+@st.cache
+def generate_data(num_of_candidates_start, num_of_candidates_stop, num_of_candidates_step, subgroups, num_of_tasks):
+    tasks = []
+    for num in range(num_of_candidates_start, num_of_candidates_stop+1, num_of_candidates_step):
+        for task_num in range(num_of_tasks):
+            batch = get_data(num, subgroups)
+            if isinstance(batch, bool):
+                return False
+            else:
+                tasks.append(get_data(num, subgroups))
+    return tasks
+
 def show_manual_research_page():
     st.title('Мануальне дослідження з довільними параметрами')
 
     st.header('Оберіть параметри для генерування задач')
     num_of_tasks = st.slider('Кількість задач для кожного набору параметрів:', 1, 5, 3)
     st.subheader('Оберіть кількість кандидатів для задач')
-    num_of_candidates_start = st.slider('Від:', 5, 15, 10, 5)
-    num_of_candidates_stop = st.slider('До:', 20, 45, 30, 5)
-    num_of_candidates_step = st.slider('Крок:', 5, 15, 10, 5)
+    num_of_candidates_start = st.slider('Від:', 10, 20, 10, 5)
+    num_of_candidates_stop = st.slider('До:', 30, 50, 40, 5)
+    num_of_candidates_step = st.slider('Крок:', 5, 20, 10, 5)
 
     st.subheader('Оберіть додаткові параметри для кожної задачі')
     num_of_groups = st.slider('Кількість груп в кожній задачі:', 1, 6, 3)
@@ -133,10 +183,7 @@ def show_manual_research_page():
     for group in range(num_of_groups):
         subgroups[group] = st.slider(f'Кількість підгруп в групі {group+1}', 2, 6, 3)
 
-    tasks = []
-    for num in range(num_of_candidates_start, num_of_candidates_stop+1, num_of_candidates_step):
-        for task_num in range(num_of_tasks):
-            tasks.append(get_data(num, subgroups))
+    tasks = generate_data(num_of_candidates_start, num_of_candidates_stop, num_of_candidates_step, subgroups, num_of_tasks)
 
     if isinstance(tasks, bool):
         st.header('Перевірте обрані параметри, будь ласка')
@@ -150,42 +197,9 @@ def show_manual_research_page():
             iter_num = st.slider('Кількість ітерацій:', 1, 100, 20)
 
         if st.button('Показати результати експерименту'):
-            results = pd.DataFrame(columns=['Номер задачі','Алгоритм',  'Кількість кандидатів', 'Розв\'язок', 'Значення ЦФ', 'Час виконання'])
             st.header('Відповідь')
-            counter = 0
-            for algorithm in algorithms:
-                for i,candidates in enumerate(tasks):
 
-                    args = [candidates]
-
-                    if algorithm == 'Жадібний алгоритм #1':
-                        fn = first_greedy_algorithm
-                        args.append([0])
-                    elif algorithm  == 'Жадібний алгоритм #2':
-                        fn = second_greedy_algorithm
-                        args.append([0])
-                    elif algorithm  == 'Жадібний алгоритм #3':
-                        fn = third_greedy_algorithm
-                    elif algorithm  == 'Генетичний алгоритм #1' or algorithm  == 'Генетичний алгоритм #2':
-                        args.append(population_size)
-                        args.append(alpha)
-                        args.append(iter_num)
-                        if algorithm  == 'Генетичний алгоритм #1':
-                            fn = first_genetic_algorithm
-                        else:
-                            fn = second_genetic_algorithm
-                    results.loc[counter, 'Номер задачі'] = i
-                    results.loc[counter, 'Алгоритм'] = algorithm
-                    results.loc[counter, 'Кількість кандидатів'] = candidates.shape[0]
-                    start = time.time()
-                    result = fn(*args)
-                    end = time.time()
-                    results.loc[counter, 'Розв\'язок'] = result
-                    results.loc[counter, 'Значення ЦФ'] = len(result)
-                    results.loc[counter, 'Час виконання'] = end-start
-                    counter += 1
-
-            results = results.astype({'Значення ЦФ': 'float64', 'Кількість кандидатів': 'int32', 'Час виконання': 'float64'})
+            results = calculate_algorithms(algorithms, tasks, population_size, alpha, iter_num)
             grouped_results = results.groupby(['Алгоритм', 'Кількість кандидатів']).mean().reset_index()
 
             st.subheader('Значення ЦФ в залежності від кількості кандидатів')
@@ -193,7 +207,20 @@ def show_manual_research_page():
             st.subheader('Час виконання алгоритму в залежності від кількості кандидатів')
             st.altair_chart(create_result_chart(grouped_results,'Час виконання', [0,ceil(results['Час виконання'].max())], 'Алгоритм', 'Кількість кандидатів', 'Час виконання'))
             st.subheader('Таблиця з розв\'язками усіх задачі')
-            st.table(results)
+            st.dataframe(results)
+
+
+            # Streamlit reloads page when any widget is changed :C
+            # st.header('Оберіть індивідуальну задачу, щоб детально подивитися на розв\'язок')
+            # task_num = st.number_input('Номер індивідуальної задачі', 0, results['Номер задачі'].max(), 0)
+            # if st.button('Показати детальні результати'):
+            #     candidates_for_showcase = tasks[task_num]
+            #     results_for_showcase = results[results['Номер задачі'] == task_num]
+            #     for algorithm in results_for_showcase['Алгоритм']:
+            #         st.subheader(f'Метод розв\'язання - {algorithm}')
+            #         st.write(f'Значення цільової функції: ' + str(int(results_for_showcase[results_for_showcase['Алгоритм']==algorithm]['Значення ЦФ'].values)))
+            #         st.write(f'Комітет складається з наступних кандидатів: ' +str(results_for_showcase[results_for_showcase['Алгоритм'] == algorithm]['Розв\'язок'].values[0]))
+            #         st.altair_chart(create_chart(candidates_for_showcase, results_for_showcase[results_for_showcase['Алгоритм'] == algorithm]['Розв\'язок'].values[0]), use_container_width=True)
 
 
 if __name__ == '__main__':
