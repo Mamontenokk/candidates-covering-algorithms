@@ -172,8 +172,8 @@ def show_manual_research_page():
     st.header('Оберіть параметри для генерування задач')
     num_of_tasks = st.slider('Кількість задач для кожного набору параметрів:', 1, 5, 3)
     st.subheader('Оберіть кількість кандидатів для задач')
-    num_of_candidates_start = st.slider('Від:', 10, 20, 10, 5)
-    num_of_candidates_stop = st.slider('До:', 30, 50, 40, 5)
+    num_of_candidates_start = st.slider('Від:', 10, 25, 15, 1)
+    num_of_candidates_stop = st.slider('До:', 30, 50, 40, 1)
     num_of_candidates_step = st.slider('Крок:', 5, 20, 10, 5)
 
     st.subheader('Оберіть додаткові параметри для кожної задачі')
@@ -189,7 +189,7 @@ def show_manual_research_page():
         st.header('Перевірте обрані параметри, будь ласка')
     else:
         algorithms = st.multiselect('Оберіть алгоритм', ('Жадібний алгоритм #1','Жадібний алгоритм #2','Жадібний алгоритм #3','Генетичний алгоритм #1','Генетичний алгоритм #2'))
-
+        population_size = alpha = iter_num = 0
         if 'Генетичний алгоритм #1' in algorithms or 'Генетичний алгоритм #2' in algorithms:
             st.subheader('Оберіть параметри для генетичного алгоритму')
             population_size = st.slider('Розмір популяції:', 0, 100, 10)
